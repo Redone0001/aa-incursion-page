@@ -6,12 +6,13 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from eve_sde.models.map import Constellation, SolarSystem
+from eve_sde.models.map import Constellation, Region, SolarSystem
 
 
 @dataclass(frozen=True)
 class IncursionSdeData:
     names: dict[int, str]
+    region_names: dict[int, str]
     security_statuses: dict[int, float]
     system_roles: dict[int, str]
 
@@ -51,6 +52,12 @@ def get_incursion_sde_data(payloads: list[dict[str, Any]]) -> IncursionSdeData:
     }
 
     constellations = Constellation.objects.in_bulk(constellation_ids)
+    region_ids = {
+        int(constellation.region_id)
+        for constellation in constellations.values()
+        if constellation.region_id is not None
+    }
+    regions = Region.objects.in_bulk(region_ids)
     systems = SolarSystem.objects.in_bulk(system_ids)
     layout = incursion_layout()
 
@@ -59,6 +66,11 @@ def get_incursion_sde_data(payloads: list[dict[str, Any]]) -> IncursionSdeData:
         for constellation_id, constellation in constellations.items()
     }
     names.update({system_id: _localized_name(system) for system_id, system in systems.items()})
+    region_names = {
+        constellation_id: _localized_name(regions[constellation.region_id])
+        for constellation_id, constellation in constellations.items()
+        if constellation.region_id in regions
+    }
     security_statuses = {
         system_id: float(system.security_status)
         for system_id, system in systems.items()
@@ -73,6 +85,7 @@ def get_incursion_sde_data(payloads: list[dict[str, Any]]) -> IncursionSdeData:
 
     return IncursionSdeData(
         names=names,
+        region_names=region_names,
         security_statuses=security_statuses,
         system_roles=system_roles,
     )

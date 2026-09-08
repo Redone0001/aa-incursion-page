@@ -42,7 +42,7 @@
                     <div class="card-header d-flex align-items-start justify-content-between gap-3">
                         <div>
                             <h2 class="h5 mb-1">
-                                {{ incursion.constellation_name|default:incursion.constellation_id }}
+                                {{ incursion.region_name|default:incursion.constellation_name|default:incursion.constellation_id }}
                             </h2>
                             <div class="small text-body-secondary">
                                 {% translate "Constellation" %} {{ incursion.constellation_id }} ·

@@ -48,6 +48,7 @@ def run_incursion_update() -> dict[str, int]:
         observed_at=attempted_at,
         security_statuses=sde_data.security_statuses,
         system_roles=sde_data.system_roles,
+        region_names=sde_data.region_names,
     )
     status.last_success_at = attempted_at
     status.last_error = ""

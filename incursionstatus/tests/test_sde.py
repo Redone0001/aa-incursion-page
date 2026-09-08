@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 from django.test import TestCase
-from eve_sde.models.map import Constellation, SolarSystem
+from eve_sde.models.map import Constellation, Region, SolarSystem
 
 from incursionstatus.sde import get_incursion_sde_data, incursion_layout
 
@@ -20,7 +20,8 @@ class IncursionSdeTests(TestCase):
         self.assertEqual(layout["djk-67"], "staging")
 
     def test_resolves_constellation_systems_security_and_roles(self):
-        Constellation.objects.create(id=20000467, name="Miennue")
+        region = Region.objects.create(id=10000001, name="The Forge")
+        Constellation.objects.create(id=20000467, name="Miennue", region=region)
         SolarSystem.objects.create(
             id=30003200,
             name="Vanguard System",
@@ -44,5 +45,6 @@ class IncursionSdeTests(TestCase):
             result = get_incursion_sde_data([payload])
 
         self.assertEqual(result.names[20000467], "Miennue")
+        self.assertEqual(result.region_names, {20000467: "The Forge"})
         self.assertEqual(result.security_statuses, {30003200: 0.6, 30003201: 0.6})
         self.assertEqual(result.system_roles, {30003200: "vanguard", 30003201: "headquarter"})

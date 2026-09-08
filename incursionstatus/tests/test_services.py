@@ -25,12 +25,14 @@ class SynchronizeIncursionsTests(TestCase):
                 30003201: "assault",
                 30003202: "headquarter",
             },
+            region_names={20000467: "The Forge"},
         )
 
         self.assertEqual(result.as_dict(), {"appeared": 1, "updated": 0, "ended": 0})
         incursion = Incursion.objects.get()
         self.assertTrue(incursion.is_active)
         self.assertEqual(incursion.constellation_name, "Miennue")
+        self.assertEqual(incursion.region_name, "The Forge")
         self.assertEqual(
             incursion.infested_solar_systems,
             [30003200, 30003201, 30003202],

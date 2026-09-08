@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.2
+
+- Resolve and display the SDE region name in the incursion card header.
+
 ## 0.3.1
 
 - Add the systems shown in the supplied incursion screenshots to the bundled layout.

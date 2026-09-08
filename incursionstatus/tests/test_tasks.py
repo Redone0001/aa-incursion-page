@@ -32,6 +32,7 @@ class IncursionTaskTests(TestCase):
         }
         mock_get_sde_data.return_value.security_statuses = {30003202: 0.6}
         mock_get_sde_data.return_value.system_roles = {30003202: "headquarter"}
+        mock_get_sde_data.return_value.region_names = {20000467: "The Forge"}
 
         result = run_incursion_update()
 

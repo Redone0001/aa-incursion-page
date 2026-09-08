@@ -8,7 +8,7 @@ an append-only history of meaningful changes.
 - Retrieves the public ESI `GetIncursions` operation every five minutes.
 - Uses Alliance Auth's bundled `django-esi` client, HTTP cache, ETags, rate-limit
   handling, and required User-Agent configuration.
-- Resolves constellation and system names, security status, and localized display
+- Resolves region, constellation, and system names, security status, and localized display
   text from `django-eveonline-sde`/`modeltranslation`; faction names use ESI.
 - Uses the bundled `incursion_layout.csv` to label Vanguard, Assault, and
   Headquarter systems and displays the Headquarter system instead of staging.

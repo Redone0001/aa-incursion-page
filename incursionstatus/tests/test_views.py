@@ -36,12 +36,14 @@ class IncursionStatusViewTests(TestCase):
             [incursion_payload()],
             incursion_names(),
             security_statuses={30003202: 0.6},
+            region_names={20000467: "The Forge"},
         )
 
         response = self.client.get(reverse("incursionstatus:index"))
 
         self.assertEqual(response.status_code, 200, response.get("Location"))
         self.assertContains(response, "Incursion Status")
+        self.assertContains(response, "The Forge")
         self.assertContains(response, "incursion-card-highsec")
         self.assertContains(response, "text-bg-success")
         self.assertNotContains(response, "Attacking faction")

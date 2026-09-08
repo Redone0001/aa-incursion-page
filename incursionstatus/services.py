@@ -11,6 +11,7 @@ from .models import Incursion, IncursionChange
 
 TRACKED_FIELDS = (
     "constellation_name",
+    "region_name",
     "faction_id",
     "faction_name",
     "has_boss",
@@ -47,6 +48,7 @@ def _model_values(
     names: dict[int, str],
     security_statuses: dict[int, float],
     system_roles: dict[int, str],
+    region_names: dict[int, str],
 ) -> dict[str, Any]:
     constellation_id = int(payload["constellation_id"])
     faction_id = int(payload["faction_id"])
@@ -61,6 +63,7 @@ def _model_values(
 
     return {
         "constellation_name": names.get(constellation_id, ""),
+        "region_name": region_names.get(constellation_id, ""),
         "faction_id": faction_id,
         "faction_name": names.get(faction_id, ""),
         "has_boss": bool(payload["has_boss"]),
@@ -90,11 +93,13 @@ def synchronize_incursions(
     observed_at: datetime | None = None,
     security_statuses: dict[int, float] | None = None,
     system_roles: dict[int, str] | None = None,
+    region_names: dict[int, str] | None = None,
 ) -> SyncResult:
     """Persist a complete ESI incursion snapshot and record only changes."""
     names = names or {}
     security_statuses = security_statuses or {}
     system_roles = system_roles or {}
+    region_names = region_names or {}
     observed_at = observed_at or timezone.now()
     seen_constellations: set[int] = set()
     appeared = 0
@@ -103,7 +108,7 @@ def synchronize_incursions(
     for payload in payloads:
         constellation_id = int(payload["constellation_id"])
         seen_constellations.add(constellation_id)
-        values = _model_values(payload, names, security_statuses, system_roles)
+        values = _model_values(payload, names, security_statuses, system_roles, region_names)
 
         try:
             incursion = Incursion.objects.select_for_update().get(

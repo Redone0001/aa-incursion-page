@@ -23,6 +23,7 @@ class Incursion(models.Model):
 
     constellation_id = models.PositiveBigIntegerField(unique=True)
     constellation_name = models.CharField(max_length=100, blank=True)
+    region_name = models.CharField(max_length=100, blank=True)
     faction_id = models.PositiveBigIntegerField()
     faction_name = models.CharField(max_length=100, blank=True)
     has_boss = models.BooleanField(default=False)
@@ -102,6 +103,7 @@ class Incursion(models.Model):
         return {
             "constellation_id": self.constellation_id,
             "constellation_name": self.constellation_name,
+            "region_name": self.region_name,
             "faction_id": self.faction_id,
             "faction_name": self.faction_name,
             "has_boss": self.has_boss,
