@@ -20,6 +20,11 @@ class SynchronizeIncursionsTests(TestCase):
             self.names,
             self.first_observation,
             security_statuses={30003202: 0.6},
+            system_roles={
+                30003200: "vanguard",
+                30003201: "assault",
+                30003202: "headquarter",
+            },
         )
 
         self.assertEqual(result.as_dict(), {"appeared": 1, "updated": 0, "ended": 0})
@@ -31,6 +36,8 @@ class SynchronizeIncursionsTests(TestCase):
             [30003200, 30003201, 30003202],
         )
         self.assertEqual(incursion.security_status, 0.6)
+        self.assertEqual(incursion.headquarter_solar_system_id, 30003202)
+        self.assertEqual(incursion.infested_solar_system_roles, ["vanguard", "assault", "headquarter"])
         self.assertEqual(IncursionChange.objects.get().change_type, "appeared")
 
     def test_unchanged_response_only_updates_last_seen(self):

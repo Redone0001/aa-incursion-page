@@ -28,10 +28,13 @@ class Incursion(models.Model):
     has_boss = models.BooleanField(default=False)
     infested_solar_systems = models.JSONField(default=list)
     infested_solar_system_names = models.JSONField(default=list)
+    infested_solar_system_roles = models.JSONField(default=list)
     influence = models.FloatField()
     staging_solar_system_id = models.PositiveBigIntegerField()
     staging_solar_system_name = models.CharField(max_length=100, blank=True)
     security_status = models.FloatField(blank=True, null=True)
+    headquarter_solar_system_id = models.PositiveBigIntegerField(blank=True, null=True)
+    headquarter_solar_system_name = models.CharField(max_length=100, blank=True)
     state = models.CharField(max_length=20, choices=State.choices)
     incursion_type = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True, db_index=True)
@@ -88,6 +91,9 @@ class Incursion(models.Model):
                 "name": self.infested_solar_system_names[index]
                 if index < len(self.infested_solar_system_names)
                 else str(system_id),
+                "role": self.infested_solar_system_roles[index]
+                if index < len(self.infested_solar_system_roles)
+                else "",
             }
             for index, system_id in enumerate(self.infested_solar_systems)
         ]
@@ -101,10 +107,13 @@ class Incursion(models.Model):
             "has_boss": self.has_boss,
             "infested_solar_systems": self.infested_solar_systems,
             "infested_solar_system_names": self.infested_solar_system_names,
+            "infested_solar_system_roles": self.infested_solar_system_roles,
             "influence": self.influence,
             "staging_solar_system_id": self.staging_solar_system_id,
             "staging_solar_system_name": self.staging_solar_system_name,
             "security_status": self.security_status,
+            "headquarter_solar_system_id": self.headquarter_solar_system_id,
+            "headquarter_solar_system_name": self.headquarter_solar_system_name,
             "state": self.state,
             "type": self.incursion_type,
             "is_active": self.is_active,

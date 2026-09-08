@@ -6,7 +6,7 @@ from esi.openapi_clients import ESIClientProvider
 from . import __esi_compatibility_date__, __title__, __url__, __version__
 
 if TYPE_CHECKING:
-    from esi.stubs import IncursionsGet, UniverseSystemsSystemIdGet
+    from esi.stubs import IncursionsGet
 
 
 esi = ESIClientProvider(
@@ -14,11 +14,7 @@ esi = ESIClientProvider(
     ua_appname=__title__,
     ua_version=__version__,
     ua_url=__url__,
-    operations=[
-        "GetIncursions",
-        "GetUniverseSystemsSystemId",
-        "PostUniverseNames",
-    ],
+    operations=["GetIncursions", "PostUniverseNames"],
 )
 
 
@@ -63,19 +59,3 @@ def get_incursion_names(ids: set[int]) -> dict[int, str]:
         else:
             names[int(item.id)] = str(item.name)
     return names
-
-
-def get_system_security_statuses(system_ids: set[int]) -> dict[int, float]:
-    """Return the security status of each staging solar system."""
-    statuses: dict[int, float] = {}
-    for system_id in sorted(system_ids):
-        response: "UniverseSystemsSystemIdGet" = (
-            esi.client.Universe.GetUniverseSystemsSystemId(system_id=system_id).result(
-                use_etag=False
-            )
-        )
-        if isinstance(response, Mapping):
-            statuses[system_id] = float(response["security_status"])
-        else:
-            statuses[system_id] = float(response.security_status)
-    return statuses

@@ -1,5 +1,5 @@
 from types import SimpleNamespace
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 from django.test import SimpleTestCase
 
@@ -32,23 +32,4 @@ class ProviderTests(SimpleTestCase):
         mock_esi.client.Universe.PostUniverseNames.assert_called_once_with(body=[1, 2])
         mock_esi.client.Universe.PostUniverseNames.return_value.result.assert_called_once_with(
             use_etag=False
-        )
-
-    @patch("incursionstatus.providers.esi")
-    def test_get_security_statuses_uses_sorted_system_ids(self, mock_esi):
-        operation = mock_esi.client.Universe.GetUniverseSystemsSystemId
-        operation.side_effect = [
-            SimpleNamespace(result=lambda **kwargs: SimpleNamespace(security_status=0.6)),
-            SimpleNamespace(result=lambda **kwargs: {"security_status": -0.1}),
-        ]
-
-        result = providers.get_system_security_statuses({30000002, 30000001})
-
-        self.assertEqual(result, {30000001: 0.6, 30000002: -0.1})
-        self.assertEqual(
-            operation.call_args_list,
-            [
-                call(system_id=30000001),
-                call(system_id=30000002),
-            ],
         )

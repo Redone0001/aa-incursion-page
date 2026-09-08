@@ -13,18 +13,25 @@ from .factories import incursion_names, incursion_payload
 
 
 class IncursionTaskTests(TestCase):
-    @patch("incursionstatus.tasks.get_system_security_statuses")
+    @patch("incursionstatus.tasks.get_incursion_sde_data")
     @patch("incursionstatus.tasks.get_incursion_names")
     @patch("incursionstatus.tasks.get_incursions")
     def test_update_fetches_names_and_synchronizes(
         self,
         mock_get_incursions,
         mock_get_names,
-        mock_get_security_statuses,
+        mock_get_sde_data,
     ):
         mock_get_incursions.return_value = [incursion_payload()]
         mock_get_names.return_value = incursion_names()
-        mock_get_security_statuses.return_value = {30003202: 0.6}
+        mock_get_sde_data.return_value.names = {
+            20000467: "Miennue",
+            30003202: "C",
+            30003200: "A",
+            30003201: "B",
+        }
+        mock_get_sde_data.return_value.security_statuses = {30003202: 0.6}
+        mock_get_sde_data.return_value.system_roles = {30003202: "headquarter"}
 
         result = run_incursion_update()
 

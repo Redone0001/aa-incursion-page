@@ -16,10 +16,13 @@ TRACKED_FIELDS = (
     "has_boss",
     "infested_solar_systems",
     "infested_solar_system_names",
+    "infested_solar_system_roles",
     "influence",
     "staging_solar_system_id",
     "staging_solar_system_name",
     "security_status",
+    "headquarter_solar_system_id",
+    "headquarter_solar_system_name",
     "state",
     "incursion_type",
 )
@@ -39,29 +42,22 @@ class SyncResult:
         return asdict(self)
 
 
-def collect_incursion_ids(payloads: list[dict[str, Any]]) -> set[int]:
-    ids: set[int] = set()
-    for payload in payloads:
-        ids.add(int(payload["constellation_id"]))
-        ids.add(int(payload["faction_id"]))
-        ids.add(int(payload["staging_solar_system_id"]))
-        ids.update(int(value) for value in payload["infested_solar_systems"])
-    return ids
-
-
-def collect_staging_system_ids(payloads: list[dict[str, Any]]) -> set[int]:
-    return {int(payload["staging_solar_system_id"]) for payload in payloads}
-
-
 def _model_values(
     payload: dict[str, Any],
     names: dict[int, str],
     security_statuses: dict[int, float],
+    system_roles: dict[int, str],
 ) -> dict[str, Any]:
     constellation_id = int(payload["constellation_id"])
     faction_id = int(payload["faction_id"])
     staging_id = int(payload["staging_solar_system_id"])
     system_ids = sorted({int(value) for value in payload["infested_solar_systems"]})
+    roles = [system_roles.get(system_id, "") for system_id in system_ids]
+    headquarter_index = next(
+        (index for index, role in enumerate(roles) if role == "headquarter"),
+        None,
+    )
+    headquarter_id = system_ids[headquarter_index] if headquarter_index is not None else None
 
     return {
         "constellation_name": names.get(constellation_id, ""),
@@ -70,10 +66,13 @@ def _model_values(
         "has_boss": bool(payload["has_boss"]),
         "infested_solar_systems": system_ids,
         "infested_solar_system_names": [names.get(value, str(value)) for value in system_ids],
+        "infested_solar_system_roles": roles,
         "influence": float(payload["influence"]),
         "staging_solar_system_id": staging_id,
         "staging_solar_system_name": names.get(staging_id, ""),
         "security_status": security_statuses.get(staging_id),
+        "headquarter_solar_system_id": headquarter_id,
+        "headquarter_solar_system_name": names.get(headquarter_id, "") if headquarter_id else "",
         "state": str(payload["state"]),
         "incursion_type": str(payload["type"]),
     }
@@ -90,10 +89,12 @@ def synchronize_incursions(
     names: dict[int, str] | None = None,
     observed_at: datetime | None = None,
     security_statuses: dict[int, float] | None = None,
+    system_roles: dict[int, str] | None = None,
 ) -> SyncResult:
     """Persist a complete ESI incursion snapshot and record only changes."""
     names = names or {}
     security_statuses = security_statuses or {}
+    system_roles = system_roles or {}
     observed_at = observed_at or timezone.now()
     seen_constellations: set[int] = set()
     appeared = 0
@@ -102,7 +103,7 @@ def synchronize_incursions(
     for payload in payloads:
         constellation_id = int(payload["constellation_id"])
         seen_constellations.add(constellation_id)
-        values = _model_values(payload, names, security_statuses)
+        values = _model_values(payload, names, security_statuses, system_roles)
 
         try:
             incursion = Incursion.objects.select_for_update().get(

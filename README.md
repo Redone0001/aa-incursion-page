@@ -8,8 +8,10 @@ an append-only history of meaningful changes.
 - Retrieves the public ESI `GetIncursions` operation every five minutes.
 - Uses Alliance Auth's bundled `django-esi` client, HTTP cache, ETags, rate-limit
   handling, and required User-Agent configuration.
-- Resolves faction, constellation, staging-system, and infested-system names with
-  one `PostUniverseNames` request.
+- Resolves constellation and system names, security status, and localized display
+  text from `django-eveonline-sde`/`modeltranslation`; faction names use ESI.
+- Uses the bundled `incursion_layout.csv` to label Vanguard, Assault, and
+  Headquarter systems and displays the Headquarter system instead of staging.
 - Records appeared, updated, and ended events while avoiding duplicate history
   rows for unchanged responses.
 - Displays influence, state, mothership availability, staging system, and infested
@@ -26,6 +28,7 @@ operations are public.
 ## Requirements
 
 - Alliance Auth 5.x
+- Django EVE Online SDE 0.2.x, loaded with `modeltranslation`
 - Django-ESI 9.4 or later in the 9.x series
 - A working Alliance Auth Celery worker and Celery Beat scheduler
 
@@ -52,6 +55,9 @@ Add the app and five-minute schedule to your project's `settings/local.py`:
 ```python
 from celery.schedules import crontab
 
+# django-eveonline-sde requires modeltranslation to be first, and provides the
+# constellation/system names and security values used by this app.
+INSTALLED_APPS = ["modeltranslation", "eve_sde"] + INSTALLED_APPS
 INSTALLED_APPS += ["incursionstatus"]
 
 CELERYBEAT_SCHEDULE["incursionstatus_update_incursions"] = {
@@ -65,7 +71,17 @@ Then initialize the database and static files:
 
 ```shell
 python manage.py migrate
+python manage.py esde_load_sde
 python manage.py collectstatic --noinput
+```
+
+Keep the SDE data current using its daily task as well:
+
+```python
+CELERYBEAT_SCHEDULE["eve_sde_check_for_updates"] = {
+    "task": "eve_sde.tasks.check_for_sde_updates",
+    "schedule": crontab(minute="0", hour="12"),
+}
 ```
 
 Restart Alliance Auth's Gunicorn, Celery worker, and Celery Beat processes. The first
@@ -104,7 +120,8 @@ Authorized users will see **Incursion Status** in the sidebar at `/incursions/`.
 
 Influence changes are recorded exactly as supplied by ESI. Infested-system IDs are
 sorted before comparison so a harmless ordering change does not create a false
-history event.
+history event. The CSV layout is matched against the English SDE system names so
+it remains stable when modeltranslation serves another locale.
 
 ## Testing
 

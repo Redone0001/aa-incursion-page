@@ -1,10 +1,12 @@
 # Changelog
 
-## 0.2.0
+## 0.3.0
 
 - Colour incursion state badges by established, mobilizing, and withdrawing state.
-- Retrieve staging-system security status and colour cards for highsec, lowsec,
-  and nullsec incursions.
+- Use django-eveonline-sde/modeltranslation for map names and security status.
+- Bundle the incursion layout CSV, label site roles, and display Headquarters.
+
+## 0.2.0
 
 ## 0.1.0
 

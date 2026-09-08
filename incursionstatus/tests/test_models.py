@@ -28,7 +28,10 @@ class IncursionModelTests(TestCase):
         self.assertEqual(incursion.influence_percent, 42)
         self.assertEqual(
             incursion.infested_systems_display,
-            [{"id": 30003200, "name": "A"}, {"id": 30003201, "name": "B"}],
+            [
+                {"id": 30003200, "name": "A", "role": ""},
+                {"id": 30003201, "name": "B", "role": ""},
+            ],
         )
         self.assertEqual(incursion.state_badge_class, "text-bg-success")
         self.assertEqual(incursion.security_band, "highsec")

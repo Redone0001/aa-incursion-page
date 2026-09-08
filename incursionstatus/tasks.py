@@ -7,14 +7,9 @@ from esi.decorators import rate_limit_retry_task
 from esi.exceptions import HTTPNotModified
 
 from .models import IncursionSyncStatus
-from .providers import (
-    get_incursion_names,
-    get_incursions,
-    get_system_security_statuses,
-)
+from .providers import get_incursion_names, get_incursions
+from .sde import get_incursion_sde_data
 from .services import (
-    collect_incursion_ids,
-    collect_staging_system_ids,
     mark_active_incursions_seen,
     synchronize_incursions,
 )
@@ -31,10 +26,9 @@ def run_incursion_update() -> dict[str, int]:
 
     try:
         payloads = get_incursions()
-        names = get_incursion_names(collect_incursion_ids(payloads))
-        security_statuses = get_system_security_statuses(
-            collect_staging_system_ids(payloads)
-        )
+        faction_ids = {int(payload["faction_id"]) for payload in payloads}
+        faction_names = get_incursion_names(faction_ids)
+        sde_data = get_incursion_sde_data(payloads)
     except HTTPNotModified:
         mark_active_incursions_seen(attempted_at)
         status.last_success_at = attempted_at
@@ -50,9 +44,10 @@ def run_incursion_update() -> dict[str, int]:
 
     result = synchronize_incursions(
         payloads,
-        names=names,
+        names={**sde_data.names, **faction_names},
         observed_at=attempted_at,
-        security_statuses=security_statuses,
+        security_statuses=sde_data.security_statuses,
+        system_roles=sde_data.system_roles,
     )
     status.last_success_at = attempted_at
     status.last_error = ""

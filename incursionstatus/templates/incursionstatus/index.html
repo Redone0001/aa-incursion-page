@@ -60,11 +60,13 @@
                     <div class="card-body">
                         <div class="row g-3 mb-4">
                             <div class="col-sm-6">
-                                <div class="incursion-label">{% translate "Staging system" %}</div>
+                                <div class="incursion-label">{% translate "Headquarter" %}</div>
                                 <div class="fw-semibold">
-                                    {{ incursion.staging_solar_system_name|default:incursion.staging_solar_system_id }}
+                                    {{ incursion.headquarter_solar_system_name|default:incursion.headquarter_solar_system_id|default:"Unknown" }}
                                 </div>
-                                <div class="small text-body-secondary">{{ incursion.staging_solar_system_id }}</div>
+                                {% if incursion.headquarter_solar_system_id %}
+                                    <div class="small text-body-secondary">{{ incursion.headquarter_solar_system_id }}</div>
+                                {% endif %}
                             </div>
                             <div class="col-sm-6">
                                 <div class="incursion-label">{% translate "Mothership" %}</div>
@@ -112,6 +114,9 @@
                             {% for system in incursion.infested_systems_display %}
                                 <span class="badge rounded-pill text-bg-secondary" title="{{ system.id }}">
                                     {{ system.name }}
+                                    {% if system.role %}
+                                        · {{ system.role|capfirst }}
+                                    {% endif %}
                                 </span>
                             {% empty %}
                                 <span class="text-body-secondary">{% translate "None reported" %}</span>

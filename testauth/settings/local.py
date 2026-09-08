@@ -17,6 +17,7 @@ class _TestRedisStub(_RedisStub):
 
 django_redis.get_redis_connection = lambda alias="default": _TestRedisStub()
 
+INSTALLED_APPS = ["eve_sde"] + INSTALLED_APPS  # noqa: F405
 INSTALLED_APPS += ["incursionstatus"]  # noqa: F405
 
 ROOT_URLCONF = "testauth.urls"
