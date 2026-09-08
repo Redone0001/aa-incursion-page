@@ -9,6 +9,7 @@ class IncursionAdmin(admin.ModelAdmin):
         "constellation_name",
         "constellation_id",
         "state",
+        "security_status",
         "influence",
         "has_boss",
         "is_active",
@@ -61,4 +62,3 @@ class IncursionSyncStatusAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return not IncursionSyncStatus.objects.exists()
-

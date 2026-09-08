@@ -19,6 +19,7 @@ TRACKED_FIELDS = (
     "influence",
     "staging_solar_system_id",
     "staging_solar_system_name",
+    "security_status",
     "state",
     "incursion_type",
 )
@@ -48,7 +49,15 @@ def collect_incursion_ids(payloads: list[dict[str, Any]]) -> set[int]:
     return ids
 
 
-def _model_values(payload: dict[str, Any], names: dict[int, str]) -> dict[str, Any]:
+def collect_staging_system_ids(payloads: list[dict[str, Any]]) -> set[int]:
+    return {int(payload["staging_solar_system_id"]) for payload in payloads}
+
+
+def _model_values(
+    payload: dict[str, Any],
+    names: dict[int, str],
+    security_statuses: dict[int, float],
+) -> dict[str, Any]:
     constellation_id = int(payload["constellation_id"])
     faction_id = int(payload["faction_id"])
     staging_id = int(payload["staging_solar_system_id"])
@@ -64,6 +73,7 @@ def _model_values(payload: dict[str, Any], names: dict[int, str]) -> dict[str, A
         "influence": float(payload["influence"]),
         "staging_solar_system_id": staging_id,
         "staging_solar_system_name": names.get(staging_id, ""),
+        "security_status": security_statuses.get(staging_id),
         "state": str(payload["state"]),
         "incursion_type": str(payload["type"]),
     }
@@ -79,9 +89,11 @@ def synchronize_incursions(
     payloads: list[dict[str, Any]],
     names: dict[int, str] | None = None,
     observed_at: datetime | None = None,
+    security_statuses: dict[int, float] | None = None,
 ) -> SyncResult:
     """Persist a complete ESI incursion snapshot and record only changes."""
     names = names or {}
+    security_statuses = security_statuses or {}
     observed_at = observed_at or timezone.now()
     seen_constellations: set[int] = set()
     appeared = 0
@@ -90,7 +102,7 @@ def synchronize_incursions(
     for payload in payloads:
         constellation_id = int(payload["constellation_id"])
         seen_constellations.add(constellation_id)
-        values = _model_values(payload, names)
+        values = _model_values(payload, names, security_statuses)
 
         try:
             incursion = Incursion.objects.select_for_update().get(
@@ -178,4 +190,3 @@ def synchronize_incursions(
         ended += 1
 
     return SyncResult(appeared=appeared, updated=updated, ended=ended)
-

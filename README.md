@@ -14,6 +14,9 @@ an append-only history of meaningful changes.
   rows for unchanged responses.
 - Displays influence, state, mothership availability, staging system, and infested
   systems on an Alliance Auth Bootstrap 5 page.
+- Colours state badges green for established, orange for mobilizing, and red for
+  withdrawing. Card borders use the staging system security: green above 0.5,
+  orange from 0.0 through 0.5, and red below 0.0.
 - Hides both the page and sidebar item unless the user has the
   `incursionstatus.incursion_view` permission.
 

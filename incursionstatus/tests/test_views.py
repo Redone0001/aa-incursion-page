@@ -4,6 +4,10 @@ from django.contrib.auth.models import Permission
 from django.test import TestCase
 from django.urls import reverse
 
+from incursionstatus.services import synchronize_incursions
+
+from .factories import incursion_names, incursion_payload
+
 
 class IncursionStatusViewTests(TestCase):
     def setUp(self):
@@ -28,8 +32,15 @@ class IncursionStatusViewTests(TestCase):
             codename="incursion_view",
         )
         self.user.user_permissions.add(permission)
+        synchronize_incursions(
+            [incursion_payload()],
+            incursion_names(),
+            security_statuses={30003202: 0.6},
+        )
 
         response = self.client.get(reverse("incursionstatus:index"))
 
         self.assertEqual(response.status_code, 200, response.get("Location"))
         self.assertContains(response, "Incursion Status")
+        self.assertContains(response, "incursion-card-highsec")
+        self.assertContains(response, "text-bg-success")

@@ -16,7 +16,10 @@ class SynchronizeIncursionsTests(TestCase):
 
     def test_new_incursion_is_stored_and_recorded(self):
         result = synchronize_incursions(
-            [incursion_payload()], self.names, self.first_observation
+            [incursion_payload()],
+            self.names,
+            self.first_observation,
+            security_statuses={30003202: 0.6},
         )
 
         self.assertEqual(result.as_dict(), {"appeared": 1, "updated": 0, "ended": 0})
@@ -27,6 +30,7 @@ class SynchronizeIncursionsTests(TestCase):
             incursion.infested_solar_systems,
             [30003200, 30003201, 30003202],
         )
+        self.assertEqual(incursion.security_status, 0.6)
         self.assertEqual(IncursionChange.objects.get().change_type, "appeared")
 
     def test_unchanged_response_only_updates_last_seen(self):
@@ -83,4 +87,3 @@ class SynchronizeIncursionsTests(TestCase):
         self.assertTrue(incursion.is_active)
         self.assertEqual(incursion.first_seen, third_observation)
         self.assertEqual(IncursionChange.objects.first().change_type, "appeared")
-

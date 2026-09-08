@@ -38,14 +38,18 @@
     <div class="row g-4 mb-5">
         {% for incursion in incursions %}
             <div class="col-12 col-xl-6">
-                <article class="card h-100 shadow-sm incursion-card">
+                <article class="card h-100 shadow-sm incursion-card {{ incursion.security_border_class }}">
                     <div class="card-header d-flex align-items-start justify-content-between gap-3">
                         <div>
                             <h2 class="h5 mb-1">
                                 {{ incursion.constellation_name|default:incursion.constellation_id }}
                             </h2>
                             <div class="small text-body-secondary">
-                                {% translate "Constellation" %} {{ incursion.constellation_id }}
+                                {% translate "Constellation" %} {{ incursion.constellation_id }} ·
+                                {{ incursion.security_band_label }}
+                                {% if incursion.security_status is not None %}
+                                    {{ incursion.security_status|floatformat:2 }}
+                                {% endif %}
                             </div>
                         </div>
                         <span class="badge {{ incursion.state_badge_class }}">
@@ -183,4 +187,3 @@
         </div>
     </section>
 {% endblock %}
-

@@ -13,16 +13,23 @@ from .factories import incursion_names, incursion_payload
 
 
 class IncursionTaskTests(TestCase):
+    @patch("incursionstatus.tasks.get_system_security_statuses")
     @patch("incursionstatus.tasks.get_incursion_names")
     @patch("incursionstatus.tasks.get_incursions")
-    def test_update_fetches_names_and_synchronizes(self, mock_get_incursions, mock_get_names):
+    def test_update_fetches_names_and_synchronizes(
+        self,
+        mock_get_incursions,
+        mock_get_names,
+        mock_get_security_statuses,
+    ):
         mock_get_incursions.return_value = [incursion_payload()]
         mock_get_names.return_value = incursion_names()
+        mock_get_security_statuses.return_value = {30003202: 0.6}
 
         result = run_incursion_update()
 
         self.assertEqual(result, {"appeared": 1, "updated": 0, "ended": 0})
-        self.assertEqual(Incursion.objects.count(), 1)
+        self.assertEqual(Incursion.objects.get().security_status, 0.6)
         self.assertIsNotNone(IncursionSyncStatus.objects.get(pk=1).last_success_at)
 
     @patch("incursionstatus.tasks.get_incursions")

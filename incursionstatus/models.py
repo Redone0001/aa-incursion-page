@@ -31,6 +31,7 @@ class Incursion(models.Model):
     influence = models.FloatField()
     staging_solar_system_id = models.PositiveBigIntegerField()
     staging_solar_system_name = models.CharField(max_length=100, blank=True)
+    security_status = models.FloatField(blank=True, null=True)
     state = models.CharField(max_length=20, choices=State.choices)
     incursion_type = models.CharField(max_length=100)
     is_active = models.BooleanField(default=True, db_index=True)
@@ -52,10 +53,32 @@ class Incursion(models.Model):
     @property
     def state_badge_class(self) -> str:
         return {
-            self.State.MOBILIZING: "text-bg-info",
-            self.State.ESTABLISHED: "text-bg-danger",
-            self.State.WITHDRAWING: "text-bg-warning",
+            self.State.MOBILIZING: "incursion-state-mobilizing",
+            self.State.ESTABLISHED: "text-bg-success",
+            self.State.WITHDRAWING: "text-bg-danger",
         }.get(self.state, "text-bg-secondary")
+
+    @property
+    def security_band(self) -> str:
+        if self.security_status is None:
+            return "unknown"
+        if self.security_status > 0.5:
+            return "highsec"
+        if self.security_status < 0:
+            return "nullsec"
+        return "lowsec"
+
+    @property
+    def security_band_label(self) -> str:
+        return {
+            "highsec": "Highsec",
+            "lowsec": "Lowsec",
+            "nullsec": "Nullsec",
+        }.get(self.security_band, "Unknown security")
+
+    @property
+    def security_border_class(self) -> str:
+        return f"incursion-card-{self.security_band}"
 
     @property
     def infested_systems_display(self) -> list[dict[str, int | str]]:
@@ -81,6 +104,7 @@ class Incursion(models.Model):
             "influence": self.influence,
             "staging_solar_system_id": self.staging_solar_system_id,
             "staging_solar_system_name": self.staging_solar_system_name,
+            "security_status": self.security_status,
             "state": self.state,
             "type": self.incursion_type,
             "is_active": self.is_active,
@@ -131,4 +155,3 @@ class IncursionSyncStatus(models.Model):
 
     def __str__(self) -> str:
         return "Incursion ESI synchronization"
-

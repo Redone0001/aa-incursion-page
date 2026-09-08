@@ -1,9 +1,22 @@
-.incursion-status {
-    --incursion-accent: #d9534f;
+.incursion-card {
+    border-top: 0.2rem solid var(--bs-secondary);
 }
 
-.incursion-card {
-    border-top: 0.2rem solid var(--incursion-accent);
+.incursion-card-highsec {
+    border-top-color: var(--bs-success);
+}
+
+.incursion-card-lowsec {
+    border-top-color: #fd7e14;
+}
+
+.incursion-card-nullsec {
+    border-top-color: var(--bs-danger);
+}
+
+.incursion-state-mobilizing {
+    color: #111;
+    background-color: #fd7e14;
 }
 
 .incursion-label {
@@ -17,4 +30,3 @@
 .incursion-status .progress {
     height: 0.75rem;
 }
-
