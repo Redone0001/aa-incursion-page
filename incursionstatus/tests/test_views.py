@@ -44,6 +44,7 @@ class IncursionStatusViewTests(TestCase):
         self.assertEqual(response.status_code, 200, response.get("Location"))
         self.assertContains(response, "Incursion Status")
         self.assertContains(response, "The Forge")
+        self.assertContains(response, "Constellation Miennue")
         self.assertContains(response, "incursion-card-highsec")
         self.assertContains(response, "text-bg-success")
         self.assertNotContains(response, "Attacking faction")

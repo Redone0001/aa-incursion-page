@@ -45,7 +45,7 @@
                                 {{ incursion.region_name|default:incursion.constellation_name|default:incursion.constellation_id }}
                             </h2>
                             <div class="small text-body-secondary">
-                                {% translate "Constellation" %} {{ incursion.constellation_id }} ·
+                                {% translate "Constellation" %} {{ incursion.constellation_name|default:incursion.constellation_id }} ·
                                 {{ incursion.security_band_label }}
                                 {% if incursion.security_status is not None %}
                                     {{ incursion.security_status|floatformat:2 }}
