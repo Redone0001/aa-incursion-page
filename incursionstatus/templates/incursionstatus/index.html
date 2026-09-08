@@ -1,0 +1,186 @@
+{% extends "incursionstatus/base.html" %}
+
+{% load i18n %}
+{% load humanize %}
+
+{% block details %}
+    <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
+        <div>
+            <h1 class="h2 mb-1">{% translate "Incursion Status" %}</h1>
+            <p class="text-body-secondary mb-0">
+                {% translate "Current Sansha incursions reported by EVE ESI." %}
+            </p>
+        </div>
+        <div class="text-lg-end small text-body-secondary">
+            {% if sync_status.last_success_at %}
+                <div>
+                    {% translate "Last ESI update" %}:
+                    <time datetime="{{ sync_status.last_success_at|date:'c' }}">
+                        {{ sync_status.last_success_at|naturaltime }}
+                    </time>
+                </div>
+                {% if sync_status.last_change_at %}
+                    <div>{% translate "Last change" %}: {{ sync_status.last_change_at|naturaltime }}</div>
+                {% endif %}
+            {% else %}
+                <span class="badge text-bg-secondary">{% translate "Waiting for the first ESI update" %}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if sync_status.last_error %}
+        <div class="alert alert-danger" role="alert">
+            <strong>{% translate "The latest ESI update failed:" %}</strong>
+            {{ sync_status.last_error }}
+        </div>
+    {% endif %}
+
+    <div class="row g-4 mb-5">
+        {% for incursion in incursions %}
+            <div class="col-12 col-xl-6">
+                <article class="card h-100 shadow-sm incursion-card">
+                    <div class="card-header d-flex align-items-start justify-content-between gap-3">
+                        <div>
+                            <h2 class="h5 mb-1">
+                                {{ incursion.constellation_name|default:incursion.constellation_id }}
+                            </h2>
+                            <div class="small text-body-secondary">
+                                {% translate "Constellation" %} {{ incursion.constellation_id }}
+                            </div>
+                        </div>
+                        <span class="badge {{ incursion.state_badge_class }}">
+                            {{ incursion.get_state_display }}
+                        </span>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row g-3 mb-4">
+                            <div class="col-sm-6">
+                                <div class="incursion-label">{% translate "Staging system" %}</div>
+                                <div class="fw-semibold">
+                                    {{ incursion.staging_solar_system_name|default:incursion.staging_solar_system_id }}
+                                </div>
+                                <div class="small text-body-secondary">{{ incursion.staging_solar_system_id }}</div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="incursion-label">{% translate "Mothership" %}</div>
+                                {% if incursion.has_boss %}
+                                    <span class="text-success fw-semibold">
+                                        <i class="fas fa-check-circle" aria-hidden="true"></i>
+                                        {% translate "Available" %}
+                                    </span>
+                                {% else %}
+                                    <span class="text-body-secondary">
+                                        <i class="far fa-clock" aria-hidden="true"></i>
+                                        {% translate "Not available" %}
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="incursion-label">{% translate "Attacking faction" %}</div>
+                                <div class="fw-semibold">
+                                    {{ incursion.faction_name|default:incursion.faction_id }}
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="incursion-label">{% translate "Type" %}</div>
+                                <div class="fw-semibold">{{ incursion.incursion_type }}</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="incursion-label">{% translate "Influence" %}</span>
+                            <span class="fw-semibold">{{ incursion.influence_percent }}%</span>
+                        </div>
+                        <div
+                            class="progress mb-4"
+                            role="progressbar"
+                            aria-label="{% translate 'Incursion influence' %}"
+                            aria-valuenow="{{ incursion.influence_percent }}"
+                            aria-valuemin="0"
+                            aria-valuemax="100"
+                        >
+                            <div class="progress-bar bg-danger" style="width: {{ incursion.influence_percent }}%"></div>
+                        </div>
+
+                        <div class="incursion-label mb-2">{% translate "Infested systems" %}</div>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for system in incursion.infested_systems_display %}
+                                <span class="badge rounded-pill text-bg-secondary" title="{{ system.id }}">
+                                    {{ system.name }}
+                                </span>
+                            {% empty %}
+                                <span class="text-body-secondary">{% translate "None reported" %}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="card-footer small text-body-secondary">
+                        {% translate "First seen" %} {{ incursion.first_seen|naturaltime }} ·
+                        {% translate "Changed" %} {{ incursion.last_changed|naturaltime }}
+                    </div>
+                </article>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body py-5 text-center">
+                        <i class="fas fa-satellite-dish fa-2x mb-3 text-body-secondary" aria-hidden="true"></i>
+                        <h2 class="h5">{% translate "No active incursions" %}</h2>
+                        <p class="text-body-secondary mb-0">
+                            {% translate "ESI is not currently reporting any active incursions." %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <section aria-labelledby="incursion-history-heading">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h2 id="incursion-history-heading" class="h5 mb-0">{% translate "Recent changes" %}</h2>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">{% translate "Time" %}</th>
+                            <th scope="col">{% translate "Constellation" %}</th>
+                            <th scope="col">{% translate "Event" %}</th>
+                            <th scope="col">{% translate "Changed fields" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for change in recent_changes %}
+                            <tr>
+                                <td title="{{ change.observed_at|date:'c' }}">{{ change.observed_at|naturaltime }}</td>
+                                <td>
+                                    {{ change.constellation_label }}
+                                    <span class="d-block small text-body-secondary">{{ change.constellation_id }}</span>
+                                </td>
+                                <td>
+                                    {% if change.change_type == "appeared" %}
+                                        <span class="badge text-bg-success">{{ change.get_change_type_display }}</span>
+                                    {% elif change.change_type == "ended" %}
+                                        <span class="badge text-bg-secondary">{{ change.get_change_type_display }}</span>
+                                    {% else %}
+                                        <span class="badge text-bg-info">{{ change.get_change_type_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ change.changed_fields|join:", " }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-body-secondary py-4">
+                                    {% translate "No changes have been recorded yet." %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+{% endblock %}
+

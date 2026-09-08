@@ -1,0 +1,9 @@
+[run]
+source = incursionstatus
+omit =
+    */migrations/*
+    */tests/*
+
+[report]
+show_missing = True
+

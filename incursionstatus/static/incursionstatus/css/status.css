@@ -1,0 +1,20 @@
+.incursion-status {
+    --incursion-accent: #d9534f;
+}
+
+.incursion-card {
+    border-top: 0.2rem solid var(--incursion-accent);
+}
+
+.incursion-label {
+    color: var(--bs-secondary-color);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.incursion-status .progress {
+    height: 0.75rem;
+}
+
