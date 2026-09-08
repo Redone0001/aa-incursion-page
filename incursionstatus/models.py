@@ -166,3 +166,56 @@ class IncursionSyncStatus(models.Model):
 
     def __str__(self) -> str:
         return "Incursion ESI synchronization"
+
+
+class NotificationRule(models.Model):
+    name = models.CharField(max_length=100)
+    enabled = models.BooleanField(default=True)
+    region_name = models.CharField(
+        max_length=100, blank=True,
+        help_text="Exact region name (case-insensitive). Leave empty for all regions.",
+    )
+    channel_id = models.CharField(max_length=20)
+    role_id = models.CharField(max_length=20, blank=True, help_text="Optional Discord role ID to ping.")
+    notify_spawn = models.BooleanField(default=True)
+    notify_disappearance = models.BooleanField(default=True)
+    notify_state = models.BooleanField(default=False, verbose_name="Notify phase changes")
+    notify_boss = models.BooleanField(default=False, verbose_name="Notify boss availability changes")
+    notify_influence = models.BooleanField(default=False, help_text="May send an alert every ESI update.")
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+
+        errors = {}
+        for field in ("channel_id", "role_id"):
+            value = getattr(self, field)
+            if (field == "channel_id" or value) and (
+                not value.isascii() or not value.isdecimal() or not 0 < int(value) < 2**64
+            ):
+                errors[field] = "Enter a positive Discord ID (up to 64 bits)."
+        if not any((self.notify_spawn, self.notify_disappearance, self.notify_state,
+                    self.notify_boss, self.notify_influence)):
+            errors["notify_spawn"] = "Select at least one notification event."
+        self.region_name = self.region_name.strip()
+        if errors:
+            raise ValidationError(errors)
+
+    def __str__(self):
+        return self.name
+
+
+class NotificationDelivery(models.Model):
+    rule = models.ForeignKey(NotificationRule, on_delete=models.CASCADE)
+    change = models.ForeignKey(IncursionChange, on_delete=models.CASCADE)
+    channel_id = models.CharField(max_length=20)
+    content = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    attempts = models.PositiveIntegerField(default=0)
+    last_error = models.TextField(blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=("rule", "change"), name="incursion_notification_rule_change"),
+        ]
+        ordering = ("pk",)

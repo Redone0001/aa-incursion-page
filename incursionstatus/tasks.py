@@ -75,3 +75,10 @@ def run_incursion_update() -> dict[str, int]:
 @rate_limit_retry_task
 def update_incursions(self) -> dict[str, int]:
     return run_incursion_update()
+
+
+@shared_task(name="incursionstatus.deliver_notifications", base=QueueOnce)
+def deliver_notifications():
+    from .notifications import deliver_pending_notifications
+
+    deliver_pending_notifications()

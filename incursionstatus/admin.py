@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Incursion, IncursionChange, IncursionSyncStatus
+from .models import Incursion, IncursionChange, IncursionSyncStatus, NotificationDelivery, NotificationRule
 
 
 @admin.register(Incursion)
@@ -62,3 +62,30 @@ class IncursionSyncStatusAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return not IncursionSyncStatus.objects.exists()
+
+
+@admin.register(NotificationRule)
+class NotificationRuleAdmin(admin.ModelAdmin):
+    list_display = ("name", "enabled", "region_name", "channel_id", "role_id")
+    list_filter = ("enabled", "notify_spawn", "notify_disappearance")
+    search_fields = ("name", "region_name", "channel_id")
+    fieldsets = (
+        (None, {"fields": ("name", "enabled")}),
+        ("Destination", {"fields": ("region_name", "channel_id", "role_id")}),
+        ("Events", {"fields": (
+            "notify_spawn", "notify_disappearance", "notify_state", "notify_boss", "notify_influence",
+        )}),
+    )
+
+
+@admin.register(NotificationDelivery)
+class NotificationDeliveryAdmin(admin.ModelAdmin):
+    list_display = ("id", "rule", "channel_id", "created_at", "sent_at", "attempts")
+    list_filter = ("sent_at",)
+    readonly_fields = ("rule", "change", "channel_id", "content", "created_at", "sent_at", "attempts", "last_error")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False

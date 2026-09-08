@@ -8,6 +8,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from .models import Incursion, IncursionChange
+from .notifications import record_change
 
 TRACKED_FIELDS = (
     "constellation_name",
@@ -123,7 +124,7 @@ def synchronize_incursions(
                 last_seen=observed_at,
                 last_changed=observed_at,
             )
-            IncursionChange.objects.create(
+            record_change(
                 incursion=incursion,
                 constellation_id=constellation_id,
                 change_type=IncursionChange.ChangeType.APPEARED,
@@ -149,7 +150,7 @@ def synchronize_incursions(
             incursion.first_seen = observed_at
             incursion.last_changed = observed_at
             incursion.save()
-            IncursionChange.objects.create(
+            record_change(
                 incursion=incursion,
                 constellation_id=constellation_id,
                 change_type=IncursionChange.ChangeType.APPEARED,
@@ -161,7 +162,7 @@ def synchronize_incursions(
         elif changed_fields:
             incursion.last_changed = observed_at
             incursion.save()
-            IncursionChange.objects.create(
+            record_change(
                 incursion=incursion,
                 constellation_id=constellation_id,
                 change_type=IncursionChange.ChangeType.UPDATED,
@@ -185,7 +186,7 @@ def synchronize_incursions(
         incursion.ended_at = observed_at
         incursion.last_changed = observed_at
         incursion.save(update_fields=("is_active", "ended_at", "last_changed"))
-        IncursionChange.objects.create(
+        record_change(
             incursion=incursion,
             constellation_id=incursion.constellation_id,
             change_type=IncursionChange.ChangeType.ENDED,

@@ -146,3 +146,64 @@ the newer ESI contract.
 ## License
 
 GPL-3.0-or-later.
+
+## Discord notifications
+
+Install the optional client dependency in the Auth environment:
+
+```shell
+python -m pip install 'aa-incursion-status[discord] @ git+https://github.com/Redone0001/aa-incursion-page.git'
+python manage.py migrate
+```
+
+Run a Discord Proxy server following its
+[operations guide](https://discordproxy.readthedocs.io/en/latest/operations.html).
+The proxy bot needs access to the destination channel and permission to send
+messages. To ping a role, that role must be mentionable or the bot must have the
+appropriate mention permission.
+
+Add this independent delivery schedule to Auth settings and restart Celery workers
+and Beat:
+
+```python
+INCURSIONSTATUS_DISCORD_PROXY_TARGET = "localhost:50051"
+CELERYBEAT_SCHEDULE["incursionstatus_deliver_notifications"] = {
+    "task": "incursionstatus.deliver_notifications",
+    "schedule": crontab(minute="*"),
+}
+```
+
+In **Admin → Incursion Status → Notification rules**, add a rule with:
+
+- A name and enabled switch.
+- An exact region name, case-insensitive, matching the name stored by the ESI
+  worker (leave blank for all regions).
+- A Discord channel ID and optional Discord role ID, copied using Discord's
+  Developer Mode.
+- Events: spawn, disappearance, phase change, boss availability change, or
+  influence change. Spawn and disappearance are enabled by default.
+
+Create separate rules for multiple regions or destinations. Django's normal
+notification-rule add/change/delete permissions control who can manage these
+settings; the page-view permission alone does not grant administration access.
+
+An incursion stays in its constellation: another location appearing is a new
+spawn, and the old location disappearing is a separate event. Recurrence in the
+same constellation after disappearance is also a new spawn. Unchanged polls and
+map-name/layout enrichment do not trigger notifications. Multiple selected fields
+changing in one update produce one message per rule. Influence alerts can be
+frequent, so they are off by default.
+
+Rules apply to newly observed events only; existing history is not replayed.
+On the first ever synchronization, currently active incursions count as spawns.
+Events and their pending messages are saved in one database transaction. Delivery
+uses the event's saved location, destination, and role, even if a later event or
+rule edit changes them. Disabling a rule pauses its pending messages; deleting it
+removes them. Re-enabling resumes pending delivery.
+
+**Notification deliveries** in admin shows message content, attempts, errors, and
+delivery time. Each delivery run processes up to 100 pending messages and retries
+failures on the next run, independently of ESI availability. Already successful
+messages are skipped. Delivery is at least once: a timeout or worker crash after
+Discord accepts a message but before the database records success can cause a
+duplicate on retry. No live Discord test is sent automatically.
