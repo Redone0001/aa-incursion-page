@@ -44,3 +44,5 @@ class IncursionStatusViewTests(TestCase):
         self.assertContains(response, "Incursion Status")
         self.assertContains(response, "incursion-card-highsec")
         self.assertContains(response, "text-bg-success")
+        self.assertNotContains(response, "Attacking faction")
+        self.assertNotContains(response, ">Type<")

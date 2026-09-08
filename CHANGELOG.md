@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1
+
+- Add the systems shown in the supplied incursion screenshots to the bundled layout.
+- Remove the attacking faction and incursion type fields from the page display.
+
 ## 0.3.0
 
 - Colour incursion state badges by established, mobilizing, and withdrawing state.

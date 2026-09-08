@@ -3,12 +3,22 @@ from unittest.mock import patch
 from django.test import TestCase
 from eve_sde.models.map import Constellation, SolarSystem
 
-from incursionstatus.sde import get_incursion_sde_data
+from incursionstatus.sde import get_incursion_sde_data, incursion_layout
 
 from .factories import incursion_payload
 
 
 class IncursionSdeTests(TestCase):
+    def test_bundled_layout_contains_screenshot_systems(self):
+        layout = incursion_layout()
+
+        self.assertEqual(layout["y-m5jn"], "headquarter")
+        self.assertEqual(layout["mj-x5v"], "assault")
+        self.assertEqual(layout["3fku-h"], "vanguard")
+        self.assertEqual(layout["m9-fib"], "vanguard")
+        self.assertEqual(layout["d2ez-x"], "vanguard")
+        self.assertEqual(layout["djk-67"], "staging")
+
     def test_resolves_constellation_systems_security_and_roles(self):
         Constellation.objects.create(id=20000467, name="Miennue")
         SolarSystem.objects.create(
