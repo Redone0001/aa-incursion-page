@@ -37,6 +37,33 @@ class NotificationTests(TestCase):
         self.assertIn("The Forge", deliveries[1].content)
         self.assertIn("Spawned", deliveries[2].content)
 
+    def test_everyone_overrides_role(self):
+        self.rule.ping_everyone = True
+        self.rule.save()
+        self.sync([incursion_payload()])
+        content = NotificationDelivery.objects.get().content
+        self.assertTrue(content.startswith("@everyone Incursion"))
+        self.assertNotIn("<@&456>", content)
+
+    def test_everyone_without_role(self):
+        self.rule.ping_everyone = True
+        self.rule.role_id = ""
+        self.rule.full_clean()
+        self.rule.save()
+        self.sync([incursion_payload()])
+        self.assertTrue(NotificationDelivery.objects.get().content.startswith("@everyone "))
+
+    def test_disabling_everyone_restores_role_for_new_events(self):
+        self.rule.ping_everyone = True
+        self.rule.save()
+        self.sync([incursion_payload()])
+        self.rule.ping_everyone = False
+        self.rule.save()
+        self.sync([])
+        deliveries = list(NotificationDelivery.objects.all())
+        self.assertTrue(deliveries[0].content.startswith("@everyone "))
+        self.assertTrue(deliveries[1].content.startswith("<@&456> "))
+
     def test_region_filter_and_disabled_rule(self):
         self.sync([incursion_payload(constellation_id=20000468)])
         self.assertFalse(NotificationDelivery.objects.exists())

@@ -31,10 +31,13 @@ def record_change(**kwargs):
                     events.append(label)
         if not events:
             continue
-        # Only the explicitly configured role may introduce a mention.
+        # Only the configured ping may introduce a mention.
         location = f"{change.constellation_label} ({snapshot.get('region_name') or 'Unknown region'})"
         location = location.replace("@", "@\u200b")
-        ping = f"<@&{rule.role_id}> " if rule.role_id else ""
+        if rule.ping_everyone:
+            ping = "@everyone "
+        else:
+            ping = f"<@&{rule.role_id}> " if rule.role_id else ""
         content = f"{ping}Incursion — {', '.join(events)}\n{location}\nObserved: {change.observed_at.isoformat()}"
         NotificationDelivery.objects.create(
             rule=rule, change=change, channel_id=rule.channel_id, content=content,

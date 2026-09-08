@@ -177,6 +177,9 @@ class NotificationRule(models.Model):
     )
     channel_id = models.CharField(max_length=20)
     role_id = models.CharField(max_length=20, blank=True, help_text="Optional Discord role ID to ping.")
+    ping_everyone = models.BooleanField(
+        default=False, help_text="Ping @everyone instead of the role ID when enabled.",
+    )
     notify_spawn = models.BooleanField(default=True)
     notify_disappearance = models.BooleanField(default=True)
     notify_state = models.BooleanField(default=False, verbose_name="Notify phase changes")

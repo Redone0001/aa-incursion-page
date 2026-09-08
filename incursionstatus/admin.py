@@ -66,12 +66,12 @@ class IncursionSyncStatusAdmin(admin.ModelAdmin):
 
 @admin.register(NotificationRule)
 class NotificationRuleAdmin(admin.ModelAdmin):
-    list_display = ("name", "enabled", "region_name", "channel_id", "role_id")
+    list_display = ("name", "enabled", "region_name", "channel_id", "role_id", "ping_everyone")
     list_filter = ("enabled", "notify_spawn", "notify_disappearance")
     search_fields = ("name", "region_name", "channel_id")
     fieldsets = (
         (None, {"fields": ("name", "enabled")}),
-        ("Destination", {"fields": ("region_name", "channel_id", "role_id")}),
+        ("Destination", {"fields": ("region_name", "channel_id", "role_id", "ping_everyone")}),
         ("Events", {"fields": (
             "notify_spawn", "notify_disappearance", "notify_state", "notify_boss", "notify_influence",
         )}),

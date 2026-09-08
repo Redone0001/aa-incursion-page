@@ -180,6 +180,9 @@ In **Admin → Incursion Status → Notification rules**, add a rule with:
   worker (leave blank for all regions).
 - A Discord channel ID and optional Discord role ID, copied using Discord's
   Developer Mode.
+- A **Ping everyone** checkbox that overrides the role ID with `@everyone`.
+  The bot needs the Mention Everyone permission in the destination channel.
+  Unchecking it restores the configured role ping for new events.
 - Events: spawn, disappearance, phase change, boss availability change, or
   influence change. Spawn and disappearance are enabled by default.
 
