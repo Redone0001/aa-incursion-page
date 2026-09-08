@@ -58,8 +58,8 @@ def expected_lifetime_string(snapshot, observed_at):
         return "Unknown"
     end_time = started + timedelta(days=days)
     if end_time <= observed_at:
-        return "Estimated phase lifetime elapsed"
-    return f"Estimated phase end: <t:{int(end_time.timestamp())}:R> (<t:{int(end_time.timestamp())}:f>)"
+        return "Estimated incursion lifetime elapsed"
+    return f"Estimated incursion end: <t:{int(end_time.timestamp())}:R> (<t:{int(end_time.timestamp())}:f>)"
 
 
 def build_embed(change, events):
@@ -80,7 +80,7 @@ def build_embed(change, events):
             {"name": "Region", "value": snapshot.get("region_name") or "Unknown", "inline": True},
             {"name": "Expected Life", "value": expected_lifetime_string(snapshot, change.observed_at), "inline": False},
         ],
-        "footer": {"text": "Lifetime is an estimate from the first observation of this phase."},
+        "footer": {"text": "Incursion end is estimated from the first observation of the current phase."},
     }
 
 

@@ -192,7 +192,7 @@ class NotificationTests(TestCase):
             self.assertIn(str(int((now + timedelta(days=days)).timestamp())),
                           expected_lifetime_string(snapshot, now))
             self.assertEqual(expected_lifetime_string(snapshot, now + timedelta(days=days)),
-                             "Estimated phase lifetime elapsed")
+                             "Estimated incursion lifetime elapsed")
         self.assertEqual(expected_lifetime_string({"state": "established"}, now), "Unknown")
         self.assertEqual(expected_lifetime_string({"state": "other", "last_state_change": now.isoformat()}, now),
                          "Unknown")

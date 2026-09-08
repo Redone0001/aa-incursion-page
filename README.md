@@ -218,12 +218,11 @@ New notifications use an embed with HQ, Status, Region, and Expected Life fields
 plus the event and constellation. Role and everyone pings remain in message
 content. Grant the proxy bot **Embed Links** permission in the destination channel.
 
-Expected Life estimates the current phase end using 8 days for established,
+Expected Life estimates the incursion end using 8 days for established,
 3 days for mobilizing, and 1 day for withdrawing. The clock starts when the phase
 is first observed, resets on a phase change or a new spawn, and does not reset
 on influence, boss, or map changes. Discord displays the estimated deadline as
-a relative countdown and local date/time. This is an estimate of the phase end,
-not a guaranteed disappearance time; initial discovery may occur partway through
+a relative countdown and local date/time. This is an estimated incursion disappearance time; initial discovery may occur partway through
 a phase. Ended incursions show "Ended", missing timestamps show "Unknown", and
 elapsed estimates are labelled accordingly.
 
