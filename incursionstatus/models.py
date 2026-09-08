@@ -42,6 +42,7 @@ class Incursion(models.Model):
     first_seen = models.DateTimeField(default=timezone.now)
     last_seen = models.DateTimeField(default=timezone.now)
     last_changed = models.DateTimeField(default=timezone.now)
+    last_state_change = models.DateTimeField(blank=True, null=True)
     ended_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
@@ -117,6 +118,7 @@ class Incursion(models.Model):
             "headquarter_solar_system_id": self.headquarter_solar_system_id,
             "headquarter_solar_system_name": self.headquarter_solar_system_name,
             "state": self.state,
+            "last_state_change": self.last_state_change.isoformat() if self.last_state_change else None,
             "type": self.incursion_type,
             "is_active": self.is_active,
         }
@@ -211,7 +213,8 @@ class NotificationDelivery(models.Model):
     rule = models.ForeignKey(NotificationRule, on_delete=models.CASCADE)
     change = models.ForeignKey(IncursionChange, on_delete=models.CASCADE)
     channel_id = models.CharField(max_length=20)
-    content = models.TextField()
+    content = models.TextField(blank=True)
+    embed = models.JSONField(default=dict, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     sent_at = models.DateTimeField(null=True, blank=True)
     attempts = models.PositiveIntegerField(default=0)

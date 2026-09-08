@@ -21,7 +21,7 @@ class IncursionAdmin(admin.ModelAdmin):
         "constellation_id",
         "staging_solar_system_name",
     )
-    readonly_fields = ("first_seen", "last_seen", "last_changed", "ended_at")
+    readonly_fields = ("first_seen", "last_seen", "last_changed", "last_state_change", "ended_at")
 
 
 @admin.register(IncursionChange)
@@ -82,7 +82,9 @@ class NotificationRuleAdmin(admin.ModelAdmin):
 class NotificationDeliveryAdmin(admin.ModelAdmin):
     list_display = ("id", "rule", "channel_id", "created_at", "sent_at", "attempts")
     list_filter = ("sent_at",)
-    readonly_fields = ("rule", "change", "channel_id", "content", "created_at", "sent_at", "attempts", "last_error")
+    readonly_fields = (
+        "rule", "change", "channel_id", "content", "embed", "created_at", "sent_at", "attempts", "last_error",
+    )
 
     def has_add_permission(self, request):
         return False

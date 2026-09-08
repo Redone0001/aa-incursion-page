@@ -123,6 +123,7 @@ def synchronize_incursions(
                 first_seen=observed_at,
                 last_seen=observed_at,
                 last_changed=observed_at,
+                last_state_change=observed_at,
             )
             record_change(
                 incursion=incursion,
@@ -145,6 +146,9 @@ def synchronize_incursions(
         incursion.is_active = True
         incursion.last_seen = observed_at
         incursion.ended_at = None
+
+        if not was_active or "state" in changed_fields:
+            incursion.last_state_change = observed_at
 
         if not was_active:
             incursion.first_seen = observed_at

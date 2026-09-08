@@ -210,3 +210,24 @@ failures on the next run, independently of ESI availability. Already successful
 messages are skipped. Delivery is at least once: a timeout or worker crash after
 Discord accepts a message but before the database records success can cause a
 duplicate on retry. No live Discord test is sent automatically.
+
+
+### Notification embeds and expected life
+
+New notifications use an embed with HQ, Status, Region, and Expected Life fields,
+plus the event and constellation. Role and everyone pings remain in message
+content. Grant the proxy bot **Embed Links** permission in the destination channel.
+
+Expected Life estimates the current phase end using 8 days for established,
+3 days for mobilizing, and 1 day for withdrawing. The clock starts when the phase
+is first observed, resets on a phase change or a new spawn, and does not reset
+on influence, boss, or map changes. Discord displays the estimated deadline as
+a relative countdown and local date/time. This is an estimate of the phase end,
+not a guaranteed disappearance time; initial discovery may occur partway through
+a phase. Ended incursions show "Ended", missing timestamps show "Unknown", and
+elapsed estimates are labelled accordingly.
+
+Migration restores phase timestamps from recorded phase/spawn history where
+available. Existing queued plain-text messages retain their original format.
+New embeds are saved with the event, so retries cannot pick up another phase's
+HQ, state, or lifetime.

@@ -1,9 +1,11 @@
 """Transactional notification outbox and Discord Proxy transport."""
 import logging
+from datetime import timedelta
 
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 
 from .models import IncursionChange, NotificationDelivery, NotificationRule
 
@@ -31,28 +33,68 @@ def record_change(**kwargs):
                     events.append(label)
         if not events:
             continue
-        # Only the configured ping may introduce a mention.
-        location = f"{change.constellation_label} ({snapshot.get('region_name') or 'Unknown region'})"
-        location = location.replace("@", "@\u200b")
         if rule.ping_everyone:
-            ping = "@everyone "
+            ping = "@everyone"
         else:
-            ping = f"<@&{rule.role_id}> " if rule.role_id else ""
-        content = f"{ping}Incursion — {', '.join(events)}\n{location}\nObserved: {change.observed_at.isoformat()}"
+            ping = f"<@&{rule.role_id}>" if rule.role_id else ""
         NotificationDelivery.objects.create(
-            rule=rule, change=change, channel_id=rule.channel_id, content=content,
+            rule=rule, change=change, channel_id=rule.channel_id,
+            content=ping, embed=build_embed(change, events),
         )
     return change
 
 
-def send_message(channel_id, content):
+def expected_lifetime_string(snapshot, observed_at):
+    if not snapshot.get("is_active", True):
+        return "Ended"
+    days = {"established": 8, "mobilizing": 3, "withdrawing": 1}.get(
+        snapshot.get("state", "").lower()
+    )
+    started = snapshot.get("last_state_change")
+    if not days or not started:
+        return "Unknown"
+    started = parse_datetime(started)
+    if started is None or timezone.is_naive(started):
+        return "Unknown"
+    end_time = started + timedelta(days=days)
+    if end_time <= observed_at:
+        return "Estimated phase lifetime elapsed"
+    return f"Estimated phase end: <t:{int(end_time.timestamp())}:R> (<t:{int(end_time.timestamp())}:f>)"
+
+
+def build_embed(change, events):
+    snapshot = change.snapshot
+    active = snapshot.get("is_active", True)
+    state = snapshot.get("state", "")
+    return {
+        "title": "Incursion — " + ", ".join(events),
+        "description": change.constellation_label,
+        "color": (
+            {"established": 0x2ECC71, "mobilizing": 0xE67E22, "withdrawing": 0xE74C3C}.get(state, 0x95A5A6)
+            if active else 0x95A5A6
+        ),
+        "timestamp": change.observed_at.isoformat(),
+        "fields": [
+            {"name": "HQ", "value": snapshot.get("headquarter_solar_system_name") or "Unknown", "inline": False},
+            {"name": "Status", "value": (state.title() or "Unknown") if active else "Ended", "inline": True},
+            {"name": "Region", "value": snapshot.get("region_name") or "Unknown", "inline": True},
+            {"name": "Expected Life", "value": expected_lifetime_string(snapshot, change.observed_at), "inline": False},
+        ],
+        "footer": {"text": "Lifetime is an estimate from the first observation of this phase."},
+    }
+
+
+def send_message(channel_id, content, embed_data=None):
     from discordproxy.client import DiscordClient
+    from discordproxy.discord_api_pb2 import Embed
 
     client = DiscordClient(
         target=getattr(settings, "INCURSIONSTATUS_DISCORD_PROXY_TARGET", "localhost:50051"),
         timeout=30,
     )
-    client.create_channel_message(channel_id=int(channel_id), content=content)
+    client.create_channel_message(
+        channel_id=int(channel_id), content=content, embed=Embed(**embed_data) if embed_data else None,
+    )
 
 
 def deliver_pending_notifications():
@@ -69,7 +111,7 @@ def deliver_pending_notifications():
                 continue
             delivery.attempts += 1
             try:
-                send_message(delivery.channel_id, delivery.content)
+                send_message(delivery.channel_id, delivery.content, delivery.embed)
             except Exception as exc:
                 delivery.last_error = str(exc)
                 logger.exception("Incursion notification %s failed", delivery.pk)
