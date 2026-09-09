@@ -161,6 +161,8 @@ class IncursionSyncStatus(models.Model):
     last_success_at = models.DateTimeField(blank=True, null=True)
     last_change_at = models.DateTimeField(blank=True, null=True)
     last_error = models.TextField(blank=True)
+    consecutive_failures = models.PositiveIntegerField(default=0)
+    next_retry_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         verbose_name = "incursion sync status"

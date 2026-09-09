@@ -230,3 +230,19 @@ Migration restores phase timestamps from recorded phase/spawn history where
 available. Existing queued plain-text messages retain their original format.
 New embeds are saved with the event, so retries cannot pick up another phase's
 HQ, state, or lifetime.
+
+### ESI downtime and temporary failures
+
+Timeouts, connection failures, and ESI HTTP 5xx responses retain the last known
+incursions and show a temporary-unavailability notice. No disappearance events
+are inferred from failed requests. Polling backs off for 5, then 10, then at most
+15 minutes between attempts, using the existing five-minute Beat schedule.
+Retry state is stored in the database and survives worker restarts. There is no
+hard-coded downtime window: outages lasting 30 minutes or longer continue to be
+retried without marking a task failed for these temporary errors.
+
+A successful response (including HTTP 304) clears the notice and backoff.
+Admin sync status exposes consecutive failures and the next permitted attempt.
+Actual attempts happen on the first scheduled poll at or after that time.
+Unexpected application errors still fail visibly. Notification delivery continues
+independently, and previously queued messages may still be delivered during downtime.

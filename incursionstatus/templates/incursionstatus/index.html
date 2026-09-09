@@ -29,9 +29,17 @@
     </div>
 
     {% if sync_status.last_error %}
-        <div class="alert alert-danger" role="alert">
-            <strong>{% translate "The latest ESI update failed:" %}</strong>
+        <div class="alert {% if sync_status.next_retry_at %}alert-warning{% else %}alert-danger{% endif %}" role="alert">
+            {% if sync_status.next_retry_at %}
+                <strong>{% translate "ESI temporarily unavailable:" %}</strong>
+            {% else %}
+                <strong>{% translate "The latest ESI update failed:" %}</strong>
+            {% endif %}
             {{ sync_status.last_error }}
+            {% if sync_status.next_retry_at %}
+                {% translate "Next attempt at or after:" %}
+                <time datetime="{{ sync_status.next_retry_at|date:'c' }}">{{ sync_status.next_retry_at|date:"Y-m-d H:i T" }}</time>
+            {% endif %}
         </div>
     {% endif %}
 

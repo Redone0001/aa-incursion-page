@@ -58,6 +58,8 @@ class IncursionSyncStatusAdmin(admin.ModelAdmin):
         "last_success_at",
         "last_change_at",
         "last_error",
+        "consecutive_failures",
+        "next_retry_at",
     )
 
     def has_add_permission(self, request):
