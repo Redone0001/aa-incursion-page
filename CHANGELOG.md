@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.3
+
+- Support django-esi 10.x while retaining compatibility with 9.x.
+- Recognize httpx2 transport errors so ESI outages still preserve data and back off.
+
 ## 0.3.2
 
 - Resolve and display the SDE region name in the incursion card header.

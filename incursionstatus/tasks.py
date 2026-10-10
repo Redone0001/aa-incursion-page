@@ -17,6 +17,14 @@ from .services import (
     synchronize_incursions,
 )
 
+# Django-ESI 10 uses httpx2; 9.x and the SDE loader still use httpx.
+try:
+    from httpx2 import TransportError as Httpx2TransportError
+except ImportError:
+    TEMPORARY_ESI_ERRORS = (httpx.TransportError, HTTPServerError)
+else:
+    TEMPORARY_ESI_ERRORS = (httpx.TransportError, Httpx2TransportError, HTTPServerError)
+
 logger = logging.getLogger(__name__)
 
 
@@ -25,7 +33,7 @@ def is_temporary_esi_failure(exc):
     seen = set()
     while exc is not None and id(exc) not in seen:
         seen.add(id(exc))
-        if isinstance(exc, (httpx.TransportError, HTTPServerError)):
+        if isinstance(exc, TEMPORARY_ESI_ERRORS):
             return True
         exc = exc.__cause__ or exc.__context__
     return False

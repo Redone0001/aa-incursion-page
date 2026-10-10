@@ -29,7 +29,7 @@ operations are public.
 
 - Alliance Auth 5.x
 - Django EVE Online SDE 0.2.x, loaded with `modeltranslation`
-- Django-ESI 9.4 or later in the 9.x series
+- Django-ESI 9.4 or later in the 9.x or 10.x series
 - A working Alliance Auth Celery worker and Celery Beat scheduler
 
 ## Installation

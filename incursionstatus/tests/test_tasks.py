@@ -64,7 +64,10 @@ class IncursionTaskTests(TestCase):
 
     @patch("incursionstatus.tasks.get_incursions")
     def test_wrapped_timeout_preserves_data_and_backs_off(self, fetch):
-        import httpx
+        try:
+            import httpx2 as httpx
+        except ImportError:
+            import httpx
 
         from incursionstatus.models import IncursionChange, NotificationDelivery
 
@@ -141,3 +144,18 @@ class IncursionTaskTests(TestCase):
         for error in (ValueError("bad payload"), RuntimeError("bug"),
                       HTTPClientError(status_code=403, headers={}, data=None)):
             self.assertFalse(is_temporary_esi_failure(error))
+
+    def test_httpx2_transport_errors_are_temporary(self):
+        try:
+            import httpx2
+        except ImportError:
+            self.skipTest("httpx2 is only required by django-esi 10")
+
+        from incursionstatus.tasks import is_temporary_esi_failure
+
+        for error in (httpx2.ConnectError("offline"), httpx2.ReadTimeout("timeout")):
+            with self.subTest(error=type(error).__name__):
+                self.assertTrue(is_temporary_esi_failure(error))
+                wrapper = RuntimeError("OpenAPI wrapper")
+                wrapper.__cause__ = error
+                self.assertTrue(is_temporary_esi_failure(wrapper))
